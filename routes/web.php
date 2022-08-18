@@ -19,10 +19,13 @@ Route::get('/', function () {
 });
 
 Route::prefix('events')->group(function () {
-    Route::get('/','App\Http\Controllers\EventController@showAll');
+    Route::get('/','App\Http\Controllers\EventController@index');
     Route::get('/create','App\Http\Controllers\EventController@create');
     Route::get('/{id}/edit','App\Http\Controllers\EventController@edit');
     Route::get('/{id}','App\Http\Controllers\EventController@view');
 });
+Route::get('/homepage', 'App\Http\Controllers\AuthController@index');
+Route::get('/register', 'App\Http\Controllers\AuthController@userRegister');
+Route::get('/login', 'App\Http\Controllers\AuthController@userLogin');
 
 
