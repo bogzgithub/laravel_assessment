@@ -1,5 +1,6 @@
 $(document).ready(function(){
     $("#btnSubmit").on("click", function(){
+        $(this).attr("disabled", true);
         $.ajax({
             url: API_URL + "/events",
             type: "post",
@@ -16,6 +17,7 @@ $(document).ready(function(){
                     $("#formCreate").trigger("reset");
                 }
                 $("#message").html(message);
+                $("#btnSubmit").removeAttr("disabled");
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.log(textStatus, errorThrown);
