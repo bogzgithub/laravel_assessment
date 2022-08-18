@@ -5,13 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\View;
 
 class EventController extends Controller
-{
+{   
+    /*
+        Start For API
+    */
     // show all data
-    public function index()
-    {
-        return Event::all();
+    public function index(){
+        return response()->json([
+            'message' => 'Successfully fetch data!',
+            'success' => true,
+            'data' => Event::all(),
+        ], 200);
     }
 
     // show only active if current datetime is between startAt and endAt
@@ -31,9 +38,8 @@ class EventController extends Controller
 
     // create/insert event data
     public function store(Request $request)
-    {    
+    {      
         return $this->save($request);
-        // this will reserve for validation
     }
     
     // update by id
@@ -44,12 +50,34 @@ class EventController extends Controller
             return $this->save($request);
         }
         else { // update
-            if($event->update($request->all())){
+
+            $validator = Validator::make($request->all(),[
+                'name' => 'required',
+                'slug' => 'required|unique:events,slug,'.$id,
+                'startAt' => 'required',
+                'endAt' => 'required|date|after_or_equal:startAt',
+            ]);
+    
+            if ($validator->fails())
+            {
                 return response()->json([
-                    'message' => 'Successfully updated!',
-                    'success' => true,
-                    'data' => array(),
+                    'success' => false,
+                    'errors' => $validator->getMessageBag()->toArray()
+    
                 ], 200);
+            }
+            else {
+                // to convert to ready format date and time to save in table database
+                $request['startAt'] = strftime('%Y-%m-%d %H:%M:%S', strtotime($request['startAt']));
+                $request['endAt'] = strftime('%Y-%m-%d %H:%M:%S', strtotime($request['endAt']));
+    
+                if($event->update($request->all())){
+                    return response()->json([
+                        'message' => 'Successfully updated!',
+                        'success' => true,
+                        'data' => array(),
+                    ], 200);
+                }
             }
         }
 
@@ -89,12 +117,82 @@ class EventController extends Controller
     }
 
     private function save(Request $request){
-        if(Event::create($request->all())){
+
+        $validator = Validator::make($request->all(),[
+            'name' => 'required',
+            'slug' => 'required|unique:events',
+            'startAt' => 'required',
+            'endAt' => 'required|date|after_or_equal:startAt',
+        ]);
+
+        if ($validator->fails())
+        {
             return response()->json([
-                'message' => 'Successfully inserted!',
-                'success' => true,
-                'data' => array(),
+                'success' => false,
+                'errors' => $validator->getMessageBag()->toArray()
+
             ], 200);
         }
+        else {
+            // to convert to ready format date and time to save in table database
+            $request['startAt'] = strftime('%Y-%m-%d %H:%M:%S', strtotime($request['startAt']));
+            $request['endAt'] = strftime('%Y-%m-%d %H:%M:%S', strtotime($request['endAt']));
+
+            if(Event::create($request->all())){
+                return response()->json([
+                    'message' => 'Successfully inserted!',
+                    'success' => true,
+                    'data' => array(),
+                ], 200);
+            }
+        }
+    }
+    /*
+        End For API
+    */
+
+    public function showAll()
+    {   
+        return View::make('event.index');
+    }
+
+    public function view($id){
+        $event = Event::find($id);
+        $data = [
+            'success' => true,
+            'data' => $event,
+            'message' => '',
+        ];
+
+        if (empty($event)){ 
+            $data = [
+                'success' => false,
+                'data' => array(),
+                'message' => 'No Event Found!',
+            ];
+        }
+        return View::make('event.view', compact('data'));
+    }
+
+    public function create(){
+        return View::make('event.create');
+    }
+
+    public function edit($id){
+        $event = Event::find($id);
+        $data = [
+            'success' => true,
+            'data' => $event,
+            'message' => '',
+        ];
+
+        if (empty($event)){ 
+            $data = [
+                'success' => false,
+                'data' => array(),
+                'message' => 'No Event Found!',
+            ];
+        }
+        return View::make('event.edit', compact('data'));
     }
 }
