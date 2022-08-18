@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EventController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +17,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::prefix('events')->group(function () {
+    Route::get('/','App\Http\Controllers\EventController@showAll');
+    Route::get('/create','App\Http\Controllers\EventController@create');
+    Route::get('/{id}/edit','App\Http\Controllers\EventController@edit');
+    Route::get('/{id}','App\Http\Controllers\EventController@view');
+});
+
+
